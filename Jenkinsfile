@@ -198,4 +198,3 @@ pipeline {
         }
     }
 }
-EOF
