@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - email-validator-1
+      - email-validator-2
+      - email-validator-3
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.2'
+
+  email-validator-1:
+    build: .
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - INSTANCE_NAME=validator-1
+      - WORKER_ID=1
+      - DISPOSABLE_DOMAINS_URL=https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/main/disposable_email_blocklist.conf
+      - AUTO_UPDATE_ENABLED=true
+      - UPDATE_INTERVAL_HOURS=24
+      - FORCE_UPDATE_INTERVAL_HOURS=48
+    depends_on:
+      - redis
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+
+  email-validator-2:
+    build: .
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - INSTANCE_NAME=validator-2
+      - WORKER_ID=2
+      - DISPOSABLE_DOMAINS_URL=https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/main/disposable_email_blocklist.conf
+      - AUTO_UPDATE_ENABLED=true
+      - UPDATE_INTERVAL_HOURS=24
+      - FORCE_UPDATE_INTERVAL_HOURS=48
+    depends_on:
+      - redis
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+
+  email-validator-3:
+    build: .
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - INSTANCE_NAME=validator-3
+      - WORKER_ID=3
+      - DISPOSABLE_DOMAINS_URL=https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/main/disposable_email_blocklist.conf
+      - AUTO_UPDATE_ENABLED=true
+      - UPDATE_INTERVAL_HOURS=24
+      - FORCE_UPDATE_INTERVAL_HOURS=48
+    depends_on:
+      - redis
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+
+  redis:
+    image: redis:7.2-alpine
+    command: redis-server --maxmemory 4gb --maxmemory-policy allkeys-lru --appendonly yes --save 900 1
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '0.5'
+
+volumes:
+  redis_data:
+EOF

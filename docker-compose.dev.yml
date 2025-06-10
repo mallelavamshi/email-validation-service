@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  email-validator:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - INSTANCE_NAME=validator-dev
+      - DISPOSABLE_DOMAINS_URL=https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/main/disposable_email_blocklist.conf
+      - AUTO_UPDATE_ENABLED=true
+      - UPDATE_INTERVAL_HOURS=1
+    depends_on:
+      - redis
+    volumes:
+      - .:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  redis:
+    image: redis:7.2-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+
+volumes:
+  redis_data_dev:
