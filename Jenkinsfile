@@ -211,10 +211,8 @@ pipeline {
     
     post {
         always {
-            node {
-                script {
-                    sh "docker system prune -f || true"
-                }
+            script {
+                sh "docker system prune -f || true"
             }
         }
         
